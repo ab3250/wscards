@@ -2,10 +2,18 @@
     (chibi time)    
     (websocket)
     (only (srfi 130) string-pad)
-    (schemepunk json)
-    (chibi string)
+    ;(schemepunk json)
+    (json)
+    ;(chibi string)
     (srfi 1)
     (srfi 27))
+
+(define for-acc (lambda (start end func)
+  (let loop ((index start)
+             (acc '()))
+      (if (> index end)
+                      acc   
+                      (loop (+ index 1) (func index end acc))))))
 
 (define (random-source-make-integers rs)
   (lambda (n) (%random-integer rs n)))
@@ -44,13 +52,13 @@
 	         (lst3 (list-set lst2 j tmp)))	         
 	         (loop new-count lst3)))))
 
-(define-syntax for
-  (syntax-rules ()
-    ((_ (i from to) b1 ...)
-     (let loop((i from))
-       (when (< i to)
-	 b1 ...
-	 (loop (+ 1 i)))))))
+; (define-syntax for
+;   (syntax-rules ()
+;     ((_ (i from to) b1 ...)
+;      (let loop((i from))
+;        (when (< i to)
+; 	 b1 ...
+; 	 (loop (+ 1 i)))))))
 
 (define (list-set lst idx val)
   (if (null? lst)
@@ -71,8 +79,13 @@
   (nloop* ((i l1s l1e)
     (j l2s l2e))
     (string-append (padn i 2) (padn j 2) ))))
+
+(define (func x end acc)
+  (cons (if (< (- x 1)(/ end 2)) "0" "1" ) acc))
+
+(define deck2 (for-acc 1 3200 func))
   
-  ;(list-ec (: s l1s l1e) (: f l2s l2e)  (string-append (padn s 2) (padn f 2) ))))
+  
 
 (define (deep-map f l)
   (let deep ((x l))
@@ -89,9 +102,10 @@
 
 ;(define deck (fill-array 0 4 0 13))
 
+;(display deck2)
 
 
-(display (json->string (knuth-shuffle deck)))
+;(display (json->string (knuth-shuffle deck2)))
 ;(display (json->string "((name . \"A-Team\") (lead (name . \"Hannibal\") (id . 321)) (devs . #(((name . \"B.A.\") (id . 7)) ((name . \"Murdock\") (id . 13))))))"))
 ;(define deck2 (fill-array-box 80000))
 
@@ -132,7 +146,11 @@
     (newline)) ;echo
 
 (define (main) 
-    (let loop ((count 0))   
-        (delay 2)                
+    (let loop ((count 0))                
+        (ws_send_txt (json->string deck))
+        (delay 2)              
         (ws_send_txt (json->string (knuth-shuffle deck)))
+        (delay 3)
+
+
    (loop (+ count 1))))
